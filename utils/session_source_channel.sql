@@ -1,6 +1,9 @@
-{% macro ga4_session_source(event_table) %}
--- GA4-UI-style first-non-auto-event source extraction with session_start fallback.
--- Use this macro in any model that needs session-level source/medium from GA4 events.
+-- Session Source / Medium and Channel
+-- GA4-UI-style attribution: the first non-automatic event carrying source/medium wins,
+-- falling back to session_start. Reuse the CTEs in any query that needs per-session channel.
+
+DECLARE start_date STRING DEFAULT '20210101';
+DECLARE end_date STRING DEFAULT '20210131';
 
 WITH session_event_traffic AS (
   SELECT
@@ -10,8 +13,9 @@ WITH session_event_traffic AS (
     event_name,
     (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') AS source,
     (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium') AS medium
-  FROM {{ event_table }}
-  WHERE (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') IS NOT NULL
+  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`
+  WHERE _TABLE_SUFFIX BETWEEN start_date AND end_date
+    AND (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') IS NOT NULL
 ),
 session_traffic_resolved AS (
   SELECT
@@ -44,5 +48,4 @@ SELECT
     WHEN COALESCE(resolved_traffic.medium, '(none)') IN ('(none)', '') THEN 'Direct'
     ELSE CONCAT(COALESCE(resolved_traffic.source, '(direct)'), ' / ', COALESCE(resolved_traffic.medium, '(none)'))
   END AS channel
-FROM session_traffic_resolved
-{% endmacro %}
+FROM session_traffic_resolved;

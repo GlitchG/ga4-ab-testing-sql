@@ -1,6 +1,6 @@
 ### Landing Page AB Testing — SQL Templates
 
-A **dbt** project with SQL templates for AB test analysis on GA4 BigQuery data: power analysis, t-test, Bayesian comparison, SRM detection, guardrails. Templates can also be run standalone — paste into the BigQuery console.
+Standalone BigQuery SQL scripts for AB test analysis on GA4 export data: power analysis, t-test, Bayesian comparison, SRM detection, guardrails. No framework — paste a file into the BigQuery console and run it.
 
 #### A note on the dataset
 
@@ -18,6 +18,8 @@ The repo runs against `bigquery-public-data.ga4_obfuscated_sample_ecommerce`, wh
 | `ab_tests/effect_size.sql` | Cohen's h and absolute risk difference, so you can argue about whether a +0.1pp lift is worth shipping. |
 | `landing_pages/identify_test_pages.sql` | Find pages with experiment URL parameters or naming patterns. |
 | `landing_pages/bounce_rate_comparison.sql` | Engagement comparison between variants. |
+| `utils/session_source_channel.sql` | Session-level source / medium and default channel grouping, resolved the way the GA4 UI does it. |
+| `utils/setup_views.sql` | Optional reusable views over the experiment data, so the other scripts stay short. |
 | `hypothesis/template.md` | Pre-test hypothesis template. Filling this in before looking at data is the cheapest insurance against p-hacking. |
 
 #### Why these specific things
@@ -53,8 +55,8 @@ The files are meant to be run in this order — before, during, and after the ex
 #### Running it
 
 ```
-git clone https://github.com/GlitchG/landing-page-ab-testing.git
-cd landing-page-ab-testing
+git clone https://github.com/GlitchG/ga4-ab-testing-sql.git
+cd ga4-ab-testing-sql
 ```
 
 Open any `.sql` file, paste into the [BigQuery console](https://console.cloud.google.com/bigquery), and run. To use it with your own data: change the dataset name at the top and replace the variant URL patterns.
